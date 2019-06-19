@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/TriggerVolume.h"
-
+#include "Engine/Classes/Components/PrimitiveComponent.h"
 
 // Sets default values for this component's properties
 UOpenDoor::UOpenDoor()
@@ -24,13 +24,13 @@ void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
+	//ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 
 	TArray<AActor*> FetchedActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATriggerVolume::StaticClass(), FetchedActors);
-	for (AActor* tv: FetchedActors) {
-		if (tv->GetName().Equals("TriggerVolumeOpenDoor")) {
-			PressurePlate = Cast<ATriggerVolume>(tv);
+	for (AActor* TriggerVolume : FetchedActors) {
+		if (TriggerVolume->GetName().Equals("TriggerVolumeOpenDoor")) {
+			PressurePlate = Cast<ATriggerVolume>(TriggerVolume);
 		}
 	}
 }
@@ -49,7 +49,7 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (PressurePlate) {
-		if (PressurePlate->IsOverlappingActor(ActorThatOpens)) {
+		if (GetToatalMassOfActorOnPlate() > 20.0f) {
 			OpenCloseDoor(OpenAngle);
 			LastDoorOpenTime = GetWorld()->GetTimeSeconds();
 		}
@@ -59,3 +59,15 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	}
 }
 
+float UOpenDoor::GetToatalMassOfActorOnPlate()
+{
+	float TotalMass = 0.0f;
+	TArray<AActor*> OverlappingActors;
+	PressurePlate->GetOverlappingActors(OUT OverlappingActors);
+	for (auto& actor : OverlappingActors) {
+		TotalMass += actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("Total Mass = %s ..."), *FString::Printf(TEXT("%f"), TotalMass))
+
+	return TotalMass;
+}

@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Actor.h"
 #include "DrawDebugHelpers.h"
+#include "Engine/Classes/Components/PrimitiveComponent.h"
 #include "Engine/EngineTypes.h"
 
 #define OUT
@@ -31,29 +32,36 @@ void UGrabber::BeginPlay() {
 		InputComponent->BindAction("Grab", IE_Released, this, &UGrabber::Release);
 	}
 	else {
-		UE_LOG(LogTemp, Error, TEXT("%s missing physics handle component"), *GetOwner()->GetName())
+		UE_LOG(LogTemp, Error, TEXT("%s missing Input Component component"), *GetOwner()->GetName())
 	}
 		
 }
 
 void UGrabber::Grab() {
 	auto HitResult = GetFirstPhysicsBodyInReach();
-	UPrimitiveComponent* ComponentToGrab = HitResult.GetComponent();
-	auto ActorHit = HitResult.GetActor();
-	if (ActorHit) {
+	ComponentToGrab = HitResult.GetComponent();
+	ActorHit = HitResult.GetActor();
+	if (ComponentToGrab && ActorHit && PhysicsHandle) {
 		PhysicsHandle->GrabComponent(ComponentToGrab, NAME_None, ComponentToGrab->GetOwner()->GetActorLocation(), true);
+
+		ComponentToGrab->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	}
 }
 
 void UGrabber::Release() {
+	if (PhysicsHandle) {
 		PhysicsHandle->ReleaseComponent();
+	}
+		if (ComponentToGrab && ActorHit) {
+			ComponentToGrab->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		}
 }
 
 
 
 void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {		// Called every frame
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (PhysicsHandle->GrabbedComponent) {
+	if (PhysicsHandle && PhysicsHandle->GrabbedComponent) {
 		PhysicsHandle->SetTargetLocation(GetReachLineEnd());
 	}
 }

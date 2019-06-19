@@ -7,7 +7,6 @@
 #include "Components/ActorComponent.h"
 #include "OpenDoor.generated.h"
 
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDINGESCAPE_API UOpenDoor : public UActorComponent
 {
@@ -31,13 +30,15 @@ private:
 	float OpenAngle = -80.0f;
 
 	UPROPERTY(EditAnywhere)
-	ATriggerVolume* PressurePlate;
+	ATriggerVolume* PressurePlate = nullptr;
 
-	AActor* ActorThatOpens;
+	//AActor* ActorThatOpens;
 
 	UPROPERTY(EditAnywhere)
 	float DoorCloseDelay = 1.0f;
 
 	float LastDoorOpenTime;
+
+	float GetToatalMassOfActorOnPlate();
 
 };

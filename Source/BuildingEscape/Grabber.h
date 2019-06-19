@@ -41,5 +41,10 @@ private:
 	const FHitResult GetFirstPhysicsBodyInReach();
 
 	FVector GetReachLineEnd();
+
 	FVector GetReachLineStart();
+
+	AActor* ActorHit;
+
+	UPrimitiveComponent* ComponentToGrab;
 };
